@@ -5,7 +5,7 @@
 // Google Sheet CSV URL을 여기에 붙여넣으세요.
 // 변환 방법: Google Sheet 공유 -> "파일 > 공유 > 웹에 게시" -> CSV 선택 -> 링크 복사
 // 예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
-const SHEET_CSV_URL = "";
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uToczZlxBdxCOf--8M3BEpyUp-6s-1JIjYg5zsvyirU/edit?usp=sharing";
 
 // 환율 설정 (EUR -> KRW 환산)
 // 여행 전에 현재 환율로 업데이트하세요

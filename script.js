@@ -2,12 +2,9 @@
 // 설정값 - 이 부분만 수정하면 됩니다
 // ============================================================
 
-// ✅ 권장: google-sheet.txt 파일에 Google Sheet 주소만 넣으면 자동 변환됩니다.
-//    공유 링크(edit), 웹게시 링크(pub), export 링크 모두 인식합니다.
-//
-// ⚙️ 직접 입력 (선택): google-sheet.txt 대신 여기에 직접 넣어도 됩니다.
-//    예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/edit?usp=sharing"
-const SHEET_CSV_URL = "";
+// Google Sheet 주소를 아래에 붙여넣으세요 (edit 공유 링크 그대로 붙여넣어도 됩니다).
+// google-sheet.txt 파일에 넣어도 같은 효과입니다 (txt가 우선 적용됨).
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uToczZlxBdxCOf--8M3BEpyUp-6s-1JIjYg5zsvyirU/edit?usp=sharing";
 
 // 환율 설정 (EUR -> KRW 환산)
 // 여행 전에 현재 환율로 업데이트하세요
@@ -583,19 +580,19 @@ async function loadData() {
   setLoading(true);
   hideError();
 
-  // ① google-sheet.txt fetch 시도 (GitHub Pages / 로컬 서버 환경)
-  let csvUrl = SHEET_CSV_URL || null;
+  // ① SHEET_CSV_URL 상수 확인 (edit/공유 링크도 자동 변환)
+  let csvUrl = SHEET_CSV_URL ? toCSVUrl(SHEET_CSV_URL) : null;
 
-  if (!csvUrl) {
-    try {
-      const txtRes = await fetch("google-sheet.txt");
-      if (txtRes.ok) {
-        const raw = (await txtRes.text()).trim();
-        csvUrl = toCSVUrl(raw);
-      }
-    } catch (_) {
-      // txt 파일을 읽지 못해도 계속 진행
+  // ② google-sheet.txt fetch 시도 (txt가 우선 — 상수를 덮어씀)
+  try {
+    const txtRes = await fetch("google-sheet.txt");
+    if (txtRes.ok) {
+      const raw = (await txtRes.text()).trim();
+      const fromTxt = toCSVUrl(raw);
+      if (fromTxt) csvUrl = fromTxt; // txt가 있으면 상수보다 우선 적용
     }
+  } catch (_) {
+    // txt 파일을 읽지 못해도 계속 진행 (상수값 사용)
   }
 
   // ② URL이 없으면 샘플 데이터

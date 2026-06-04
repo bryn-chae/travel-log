@@ -41,47 +41,32 @@ travel-log/
 
 ---
 
-## 🔗 Google Sheet → CSV 주소 변환 방법
+## 🔗 Google Sheet 연결 방법 (가장 쉬운 방법)
 
-### 방법 1: "웹에 게시" (권장)
+### ✅ google-sheet.txt에 주소만 붙여넣기 (권장)
 
-1. Google Sheet를 엽니다.
-2. 상단 메뉴 **파일 → 공유 → 웹에 게시** 클릭
-3. **"링크"** 탭 선택
-4. "게시할 항목" 드롭다운에서 **CSV** 선택
-5. **게시** 버튼 클릭 → 생성된 URL 복사
+`google-sheet.txt` 파일에 Google Sheet 공유 링크를 그대로 넣으면 됩니다. CSV 변환은 자동입니다.
 
-생성된 URL 형식:
 ```
-https://docs.google.com/spreadsheets/d/e/XXXXXXX/pub?gid=0&single=true&output=csv
+https://docs.google.com/spreadsheets/d/1uToczZlxBdxCOf--8M3BEpyUp-6s-1JIjYg5zsvyirU/edit?usp=sharing
 ```
 
-### 방법 2: export 링크 직접 만들기
+아래 형식들을 모두 인식합니다:
+- `/edit?usp=sharing` 형태 (일반 공유 링크) ✅
+- `/edit#gid=123` 형태 (특정 시트 탭) ✅
+- `/export?format=csv` 형태 (이미 변환된 주소) ✅
+- `/pub?output=csv` 형태 ("웹에 게시" 링크) ✅
 
-Google Sheet URL이 아래와 같다면:
-```
-https://docs.google.com/spreadsheets/d/SHEET_ID/edit
-```
-
-CSV URL로 변환:
-```
-https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0
-```
-
-`SHEET_ID` 부분만 실제 시트 ID로 교체하면 됩니다.
-
-> ⚠️ **주의:** 시트가 **"링크가 있는 사용자 모두 보기"** 로 공유되어 있어야 CSV fetch가 작동합니다.
+> ⚠️ **필수:** 시트가 **"링크가 있는 사용자 모두 보기"** 로 공유되어 있어야 합니다.
+> Google Sheet → 오른쪽 상단 **공유** → **"링크가 있는 모든 사용자"** → **뷰어** 선택
 
 ---
 
-## ⚙️ script.js 설정 방법
+## ⚙️ 기타 설정 (script.js)
 
-`script.js` 파일 상단에서 다음 값들을 수정하세요:
+환율·예산 등은 `script.js` 상단에서 수정합니다:
 
 ```js
-// Google Sheet CSV 주소를 여기에 붙여넣으세요
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/XXXXX/pub?gid=0&single=true&output=csv";
-
 // EUR → KRW 환율 (여행 전 최신 환율로 업데이트)
 const EUR_TO_KRW = 1500;
 

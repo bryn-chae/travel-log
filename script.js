@@ -2,10 +2,19 @@
 // 설정값 - 이 부분만 수정하면 됩니다
 // ============================================================
 
+<<<<<<< HEAD
 // Google Sheet CSV URL을 여기에 붙여넣으세요.
 // 변환 방법: Google Sheet 공유 -> "파일 > 공유 > 웹에 게시" -> CSV 선택 -> 링크 복사
 // 예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uToczZlxBdxCOf--8M3BEpyUp-6s-1JIjYg5zsvyirU/edit?usp=sharing";
+=======
+// ✅ 권장: google-sheet.txt 파일에 Google Sheet 주소만 넣으면 자동 변환됩니다.
+//    (edit 링크, 공유 링크, export 링크 모두 인식합니다)
+//
+// ⚙️ 직접 입력 (선택): google-sheet.txt 대신 여기에 직접 넣어도 됩니다.
+//    예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
+const SHEET_CSV_URL = "";
+>>>>>>> 0b8d19f (Add google sheet sharing)
 
 // 환율 설정 (EUR -> KRW 환산)
 // 여행 전에 현재 환율로 업데이트하세요
@@ -505,35 +514,80 @@ function renderDashboard(rawData) {
 }
 
 // ============================================================
+// Google Sheet URL → CSV URL 변환
+// ============================================================
+
+// 어떤 형태의 Google Sheet URL이든 CSV export URL로 변환
+// 지원 형식:
+//   .../d/SHEET_ID/edit?usp=sharing
+//   .../d/SHEET_ID/edit#gid=123
+//   .../d/e/PUB_ID/pub?gid=0&output=csv   ← 이미 완성된 형태
+//   .../d/SHEET_ID/export?format=csv&gid=0 ← 이미 완성된 형태
+function toCSVUrl(rawUrl) {
+  const url = rawUrl.trim();
+  if (!url) return null;
+
+  // 이미 CSV export/pub URL이면 그대로 사용
+  if (url.includes("output=csv") || url.includes("format=csv")) return url;
+
+  // Sheet ID 추출 (/d/ 다음 세그먼트, /e/ 형태 제외)
+  const idMatch = url.match(/\/spreadsheets\/d\/(?!e\/)([a-zA-Z0-9_-]+)/);
+  if (!idMatch) return null;
+  const sheetId = idMatch[1];
+
+  // gid 추출 (없으면 0 = 첫 번째 시트)
+  const gidMatch = url.match(/[?&#]gid=(\d+)/);
+  const gid = gidMatch ? gidMatch[1] : "0";
+
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+}
+
+// ============================================================
 // 데이터 로딩
 // ============================================================
 async function loadData() {
   setLoading(true);
   hideError();
 
-  // URL이 없으면 샘플 데이터 사용
-  if (!SHEET_CSV_URL) {
+  // ① google-sheet.txt fetch 시도 (GitHub Pages / 로컬 서버 환경)
+  let csvUrl = SHEET_CSV_URL || null;
+
+  if (!csvUrl) {
+    try {
+      const txtRes = await fetch("google-sheet.txt");
+      if (txtRes.ok) {
+        const raw = (await txtRes.text()).trim();
+        csvUrl = toCSVUrl(raw);
+      }
+    } catch (_) {
+      // txt 파일을 읽지 못해도 계속 진행
+    }
+  }
+
+  // ② URL이 없으면 샘플 데이터
+  if (!csvUrl) {
     setLoading(false);
-    showError("⚠️ SHEET_CSV_URL이 설정되지 않았습니다. 아래는 샘플 데이터입니다. script.js 상단의 SHEET_CSV_URL에 Google Sheet CSV 주소를 입력하면 실제 데이터가 표시됩니다.");
+    showError("⚠️ google-sheet.txt에 Google Sheet 주소를 넣어주세요. 지금은 샘플 데이터를 표시합니다.");
     renderDashboard(SAMPLE_DATA);
     return;
   }
 
+  // ③ CSV fetch
   try {
-    const res = await fetch(SHEET_CSV_URL);
+    const res = await fetch(csvUrl);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
     const rows = parseCSV(text);
 
     if (rows.length === 0) {
-      showError("⚠️ 시트에서 데이터를 불러왔지만 내용이 없습니다. 샘플 데이터를 표시합니다.");
+      showError("⚠️ 시트에 데이터가 없습니다. 샘플 데이터를 표시합니다.");
       renderDashboard(SAMPLE_DATA);
     } else {
       renderDashboard(rows);
     }
   } catch (err) {
     setLoading(false);
-    showError(`❌ Google Sheet 데이터를 불러오지 못했습니다 (${err.message}). 아래는 샘플 데이터입니다. README의 '구글 시트 공개 설정' 항목을 확인해주세요.`);
+    showError(`❌ Google Sheet를 불러오지 못했습니다 (${err.message}). 시트가 "링크 있는 사용자 모두 보기"로 공유되어 있는지 확인해주세요.`);
     renderDashboard(SAMPLE_DATA);
     return;
   }

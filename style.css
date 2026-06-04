@@ -201,10 +201,15 @@ header p {
 .bar-label {
   font-size: 0.8rem;
   color: var(--text);
-  min-width: 56px;
+  min-width: 56px;       /* bar-label-wrap이 없을 때 직접 쓰는 경우 유지 */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* bar-label-wrap 안에 있을 때는 wrap이 폭을 담당 */
+.bar-label-wrap .bar-label {
+  min-width: unset;
 }
 
 /* 일별 차트는 날짜 라벨 폭을 좁게 */
@@ -326,12 +331,399 @@ header p {
   padding: 20px 0;
 }
 
+/* ---- 소프트 텍스트 ---- */
+.value.soft {
+  font-size: 0.95rem !important;
+  color: var(--text-sub) !important;
+}
+
+.neutral-budget {
+  background: var(--bg);
+}
+
+/* ---- 시나리오 탭 ---- */
+.scenario-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.scenario-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+
+.scenario-tab.active {
+  border-color: var(--primary);
+  background: #eef2ff;
+}
+
+.stab-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.scenario-tab.active .stab-label {
+  color: var(--primary);
+}
+
+.stab-days {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.scenario-tab.active .stab-days {
+  color: var(--primary);
+}
+
+/* ---- 시나리오 본문 ---- */
+.scenario-budget-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.sb-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 80px;
+}
+
+.sb-label {
+  font-size: 0.68rem;
+  color: var(--text-sub);
+}
+
+.sb-value {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.sb-value.accent {
+  color: var(--primary);
+}
+
+.sb-arrow {
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ---- 예산 진행 바 ---- */
+.scenario-progress-wrap {
+  margin-bottom: 12px;
+}
+
+.scenario-progress-bar {
+  background: var(--border);
+  border-radius: 999px;
+  height: 10px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+.scenario-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 999px;
+  transition: width 0.5s ease;
+}
+
+.scenario-progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-sub);
+}
+
+/* ---- 시나리오 통계 ---- */
+.scenario-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ss-item {
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ss-label {
+  font-size: 0.7rem;
+  color: var(--text-sub);
+}
+
+.ss-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+/* ---- 분석 메시지 ---- */
+.scenario-advice {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.soft-advice {
+  color: var(--text-sub);
+}
+
+.scenario-deduct-note {
+  font-size: 0.68rem;
+  color: var(--text-sub);
+  margin-top: 6px;
+}
+
+/* ---- Home 제외 안내 ---- */
+.summary-exclude-note {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  margin-top: 10px;
+  text-align: right;
+}
+
 /* ---- 환율 정보 ---- */
 .rate-info {
   font-size: 0.73rem;
   color: var(--text-sub);
   text-align: right;
   margin-top: 10px;
+}
+
+/* ---- 바 차트 라벨 + 서브텍스트 ---- */
+.bar-label-wrap {
+  min-width: 56px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* 도시 차트는 라벨 wrap이 더 넓어야 함 */
+#city-chart .bar-label-wrap {
+  min-width: 80px;
+}
+
+.bar-label-meta {
+  /* 서브텍스트: 일수·한도 */
+  font-size: 0.65rem;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.bar-days-tag {
+  /* 인라인으로 표시되는 일수 태그 */
+}
+
+/* ---- 도시 상세: 예산 행 ---- */
+.city-budget-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.city-days-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+.city-budget-limit {
+  font-size: 0.8rem;
+  color: var(--text-sub);
+  flex: 1;
+}
+
+.city-budget-diff {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* ============================================================
+   캘린더 히트맵
+   ============================================================ */
+.cal-wrap { }
+
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cal-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cal-arrow {
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-sub);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  transition: all 0.12s;
+}
+
+.cal-arrow:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eef2ff;
+}
+
+/* 7열 그리드 */
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+/* 요일 헤더 */
+.cal-dow {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  padding: 4px 0;
+}
+.cal-dow-sun { color: #ef4444; }
+.cal-dow-sat { color: #3b82f6; }
+
+/* 날짜 셀 공통 */
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: var(--bg);
+  min-height: 38px;
+  position: relative;
+  transition: transform 0.1s;
+}
+
+.cal-day.cal-has-data {
+  cursor: pointer;
+}
+
+.cal-day.cal-has-data:hover {
+  transform: scale(1.06);
+  z-index: 1;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+
+.cal-day-empty {
+  background: transparent;
+}
+
+.cal-day-num {
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text);
+}
+
+.cal-day-amt {
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  color: inherit;
+}
+
+/* 일/토 색상 */
+.cal-sun .cal-day-num { color: #ef4444; }
+.cal-sat .cal-day-num { color: #3b82f6; }
+
+/* 오늘 표시 */
+.cal-today {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+/* 선택된 날짜 */
+.cal-selected {
+  outline: 2px solid #1d4ed8;
+  outline-offset: -2px;
+}
+
+/* 히트맵 색상 */
+.heat-low  { background: #dcfce7; color: #166534; }
+.heat-mid  { background: #86efac; color: #14532d; }
+.heat-high { background: #fde68a; color: #92400e; }
+.heat-over { background: #fca5a5; color: #7f1d1d; }
+
+.heat-low  .cal-day-num,
+.heat-mid  .cal-day-num { color: #166534; }
+.heat-high .cal-day-num { color: #92400e; }
+.heat-over .cal-day-num { color: #7f1d1d; }
+
+/* 범례 */
+.cal-legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+.cal-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--text-sub);
+}
+
+.cal-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
 }
 
 /* ---- 날짜 선택 칩 ---- */
@@ -364,6 +756,26 @@ header p {
 .date-chip.active {
   background: var(--primary);
   border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Home 칩 — 약간 다른 색상으로 구분 */
+.date-chip-home {
+  background: #fff8e1;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.date-chip-home:hover {
+  background: #fef3c7;
+  border-color: #d97706;
+  color: #92400e;
+}
+
+.date-chip-home.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
   color: #fff;
   font-weight: 600;
 }

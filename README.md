@@ -129,3 +129,4 @@ const TRIP_START_DATE = "2026-06-10";
 - Google Sheet에 새 행을 추가하면, 페이지를 **새로고침(F5)** 하면 자동으로 최신 데이터가 반영됩니다.
 - 환율 변경 시 `script.js`의 `EUR_TO_KRW` 값만 수정하고 다시 커밋·푸시하면 됩니다.
 "# travek-log" 
+"# travel-log" 

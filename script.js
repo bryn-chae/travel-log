@@ -266,11 +266,11 @@ function renderSummary(expanded, entries) {
 }
 
 // 바 차트 렌더링 (CSS 기반)
-function renderBarChart(containerId, dataMap, limit) {
+// onClickFn이 있으면 각 바를 클릭 가능하게 만듦
+function renderBarChart(containerId, dataMap, limit, onClickFn) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  // 값 기준 내림차순 정렬
   const sorted = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
   const items  = limit ? sorted.slice(0, limit) : sorted;
   if (items.length === 0) {
@@ -279,11 +279,12 @@ function renderBarChart(containerId, dataMap, limit) {
   }
 
   const maxVal = items[0][1];
+  const clickable = typeof onClickFn === "function";
 
   container.innerHTML = items.map(([label, val]) => {
     const pct = maxVal > 0 ? Math.round((val / maxVal) * 100) : 0;
     return `
-      <div class="bar-row">
+      <div class="bar-row ${clickable ? "clickable-bar" : ""}" data-label="${label}">
         <div class="bar-label">${label}</div>
         <div class="bar-track">
           <div class="bar-fill" style="width:${pct}%"></div>
@@ -292,6 +293,162 @@ function renderBarChart(containerId, dataMap, limit) {
       </div>
     `;
   }).join("");
+
+  if (clickable) {
+    container.querySelectorAll(".clickable-bar").forEach(row => {
+      row.addEventListener("click", () => {
+        const wasActive = row.classList.contains("active");
+        container.querySelectorAll(".clickable-bar").forEach(r => r.classList.remove("active"));
+        if (!wasActive) {
+          row.classList.add("active");
+          onClickFn(row.dataset.label);
+        } else {
+          onClickFn(null); // 닫기
+        }
+      });
+    });
+  }
+}
+
+// ============================================================
+// 도시별 상세 내역
+// ============================================================
+
+// 카테고리 표시 순서
+const CATEGORY_ORDER = ["accommodation", "food", "transport", "attraction", "shopping", "etc"];
+
+function renderCityDetail(city, entries, expanded) {
+  const container = document.getElementById("city-detail-content");
+  if (!container) return;
+
+  if (!city) {
+    container.innerHTML = "<p class='empty-msg detail-hint'>도시를 클릭하면 상세 내역이 표시됩니다.</p>";
+    return;
+  }
+
+  // 해당 도시의 원본 항목 (days 분산 전)
+  const cityEntries = entries.filter(e => e.city === city);
+  // 해당 도시의 일별 총합 (days 분산 적용)
+  const cityTotal = expanded
+    .filter(e => e.city === city)
+    .reduce((sum, e) => sum + e.amountKRW, 0);
+
+  // 카테고리 순서대로 그룹화
+  const grouped = {};
+  CATEGORY_ORDER.forEach(cat => { grouped[cat] = []; });
+  cityEntries.forEach(e => {
+    const cat = CATEGORY_ORDER.includes(e.category) ? e.category : "etc";
+    grouped[cat].push(e);
+  });
+
+  // 카테고리별 소계 (expanded 기준)
+  const catTotals = {};
+  expanded.filter(e => e.city === city).forEach(e => {
+    const cat = CATEGORY_ORDER.includes(e.category) ? e.category : "etc";
+    catTotals[cat] = (catTotals[cat] || 0) + e.amountKRW;
+  });
+
+  const sections = CATEGORY_ORDER
+    .filter(cat => grouped[cat].length > 0)
+    .map(cat => {
+      const emoji = CATEGORY_EMOJI[cat] || "💳";
+      const catTotal = catTotals[cat] || 0;
+      const itemsHtml = grouped[cat].map(e => {
+        const krw = toKRW(e.amount, e.currency);
+        const origStr = e.currency !== "KRW"
+          ? `<span class="orig-amount">${e.amount} ${e.currency}</span>` : "";
+        const daysStr = e.days > 1
+          ? `<span class="list-days">÷${e.days}일 (원 ${formatKRW(krw)})</span>` : "";
+        const perDay = Math.round(krw / e.days);
+        const displayAmt = e.days > 1 ? perDay * e.days : krw; // 실제 결제액
+        return `
+          <div class="detail-item">
+            <div class="list-info" style="flex:1">
+              <div class="list-item-name">${e.item}</div>
+              <div class="list-meta">${e.date}${e.days > 1 ? ` ~ ${formatDate(addDays(parseDate(e.date), e.days - 1))}` : ""}</div>
+              ${e.note ? `<div class="list-note">${e.note}</div>` : ""}
+            </div>
+            <div class="list-right">
+              <div class="list-amount">${formatKRW(displayAmt)}</div>
+              ${origStr}${daysStr}
+            </div>
+          </div>`;
+      }).join("");
+      return `
+        <div class="group-cat-section">
+          <div class="group-cat-header">
+            <span>${emoji} ${cat}</span>
+            <span class="group-cat-total">${formatKRW(catTotal)}</span>
+          </div>
+          ${itemsHtml}
+        </div>`;
+    }).join("");
+
+  container.innerHTML = `
+    <div class="group-detail-header">
+      <span class="group-detail-title">🏙️ ${city}</span>
+      <span class="group-detail-total">${formatKRW(cityTotal)}</span>
+    </div>
+    ${sections}
+  `;
+}
+
+// ============================================================
+// 카테고리별 상세 내역
+// ============================================================
+
+function renderCategoryDetail(category, entries, expanded) {
+  const container = document.getElementById("category-detail-content");
+  if (!container) return;
+
+  if (!category) {
+    container.innerHTML = "<p class='empty-msg detail-hint'>카테고리를 클릭하면 상세 내역이 표시됩니다.</p>";
+    return;
+  }
+
+  const catEntries = entries
+    .filter(e => {
+      const cat = CATEGORY_ORDER.includes(e.category) ? e.category : "etc";
+      return cat === category;
+    })
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  const catTotal = expanded
+    .filter(e => {
+      const cat = CATEGORY_ORDER.includes(e.category) ? e.category : "etc";
+      return cat === category;
+    })
+    .reduce((sum, e) => sum + e.amountKRW, 0);
+
+  const emoji = CATEGORY_EMOJI[category] || "💳";
+
+  const itemsHtml = catEntries.map(e => {
+    const krw = toKRW(e.amount, e.currency);
+    const origStr = e.currency !== "KRW"
+      ? `<span class="orig-amount">${e.amount} ${e.currency}</span>` : "";
+    const daysStr = e.days > 1
+      ? `<span class="list-days">÷${e.days}일 (원 ${formatKRW(krw)})</span>` : "";
+    return `
+      <div class="detail-item">
+        <div class="list-info" style="flex:1">
+          <div class="list-item-name">${e.item}</div>
+          <div class="list-meta">${e.date} · ${e.city}</div>
+          ${e.note ? `<div class="list-note">${e.note}</div>` : ""}
+        </div>
+        <div class="list-right">
+          <div class="list-amount">${formatKRW(krw)}</div>
+          ${origStr}${daysStr}
+        </div>
+      </div>`;
+  }).join("");
+
+  container.innerHTML = `
+    <div class="group-detail-header">
+      <span class="group-detail-title">${emoji} ${category}</span>
+      <span class="group-detail-total">${formatKRW(catTotal)}</span>
+    </div>
+    ${itemsHtml}
+  `;
 }
 
 // ============================================================
@@ -530,10 +687,10 @@ function renderDashboard(rawData) {
   const dates = Object.keys(byDate).sort();
 
   renderSummary(expanded, entries);
-  renderDatePicker(dates, entries, expanded);      // 날짜 칩
-  renderDailyChart(byDate, entries, expanded);     // 일별 차트 (클릭 연동)
-  renderBarChart("city-chart",     byCity);
-  renderBarChart("category-chart", byCategory);
+  renderDatePicker(dates, entries, expanded);
+  renderDailyChart(byDate, entries, expanded);
+  renderBarChart("city-chart",     byCity,     null, city     => renderCityDetail(city, entries, expanded));
+  renderBarChart("category-chart", byCategory, null, category => renderCategoryDetail(category, entries, expanded));
   renderRecentList(entries);
 }
 

@@ -451,6 +451,74 @@ header p {
   color: var(--primary);
 }
 
+/* ---- 도시/카테고리 상세 내역 ---- */
+.group-detail-content {
+  min-height: 36px;
+  margin-top: 4px;
+}
+
+.detail-hint {
+  padding: 12px 0 4px;
+}
+
+.group-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0 10px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.group-detail-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.group-detail-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+/* 카테고리 구분선 (도시 상세 내부) */
+.group-cat-section {
+  margin-bottom: 8px;
+}
+
+.group-cat-section:last-child {
+  margin-bottom: 0;
+}
+
+.group-cat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 8px 0 2px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+.group-cat-total {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* 선택된 바 강조 */
+.clickable-bar.active .bar-fill {
+  background: #2d5be3;
+}
+
+.clickable-bar.active .bar-label {
+  color: var(--primary);
+  font-weight: 700;
+}
+
 /* ---- 반응형: 태블릿 이상 ---- */
 @media (min-width: 640px) {
   header {

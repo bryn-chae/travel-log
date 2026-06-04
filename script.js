@@ -2,19 +2,12 @@
 // 설정값 - 이 부분만 수정하면 됩니다
 // ============================================================
 
-<<<<<<< HEAD
-// Google Sheet CSV URL을 여기에 붙여넣으세요.
-// 변환 방법: Google Sheet 공유 -> "파일 > 공유 > 웹에 게시" -> CSV 선택 -> 링크 복사
-// 예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1uToczZlxBdxCOf--8M3BEpyUp-6s-1JIjYg5zsvyirU/edit?usp=sharing";
-=======
 // ✅ 권장: google-sheet.txt 파일에 Google Sheet 주소만 넣으면 자동 변환됩니다.
-//    (edit 링크, 공유 링크, export 링크 모두 인식합니다)
+//    공유 링크(edit), 웹게시 링크(pub), export 링크 모두 인식합니다.
 //
 // ⚙️ 직접 입력 (선택): google-sheet.txt 대신 여기에 직접 넣어도 됩니다.
-//    예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0"
+//    예시: "https://docs.google.com/spreadsheets/d/SHEET_ID/edit?usp=sharing"
 const SHEET_CSV_URL = "";
->>>>>>> 0b8d19f (Add google sheet sharing)
 
 // 환율 설정 (EUR -> KRW 환산)
 // 여행 전에 현재 환율로 업데이트하세요
@@ -95,23 +88,57 @@ function daysBetween(a, b) {
 // 데이터 처리 함수
 // ============================================================
 
+// CSV 한 행을 필드 배열로 분리 (RFC 4180 따옴표 처리)
+// gviz API는 모든 값을 "..." 로 감싸서 반환하므로 따옴표 제거 필수
+function splitCSVRow(line) {
+  const fields = [];
+  let cur = "";
+  let inQuote = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (inQuote && line[i + 1] === '"') { cur += '"'; i++; } // escaped quote
+      else inQuote = !inQuote;
+    } else if (ch === "," && !inQuote) {
+      fields.push(cur.trim()); cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  fields.push(cur.trim());
+  return fields;
+}
+
 // CSV 텍스트를 파싱해서 행 배열로 변환
 function parseCSV(text) {
-  const lines = text.trim().split("\n");
+  // \r 제거 후 줄 분리
+  const lines = text.replace(/\r/g, "").trim().split("\n");
   if (lines.length < 2) return [];
 
-  // 첫 줄은 헤더
-  const headers = lines[0].split(",").map(h => h.trim().toLowerCase().replace(/\r/g, ""));
+  // 헤더 행 탐지: "date" 필드가 포함된 첫 번째 줄을 헤더로 인식
+  // gviz 출력 시 안내문+date가 같은 셀에 합쳐질 수 있으므로 endsWith/includes로 처리
+  const headerLineIdx = lines.findIndex(l => {
+    const fields = splitCSVRow(l).map(f => f.toLowerCase());
+    return fields.some(f => f === "date" || f.endsWith("date"));
+  });
+  if (headerLineIdx === -1) return [];
+
+  // 헤더 정규화: "...date" 같은 합쳐진 셀에서 "date"만 추출
+  const headers = splitCSVRow(lines[headerLineIdx]).map(h => {
+    const clean = h.toLowerCase().trim();
+    // 안내문 텍스트가 붙어있으면 마지막 단어(실제 컬럼명)만 추출
+    const known = ["date","city","category","item","amount","currency","days","note"];
+    const found = known.find(k => clean === k || clean.endsWith(k));
+    return found || clean;
+  });
 
   const rows = [];
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(",").map(v => v.trim().replace(/\r/g, ""));
+  for (let i = headerLineIdx + 1; i < lines.length; i++) {
+    const values = splitCSVRow(lines[i]);
     if (values.every(v => v === "")) continue; // 빈 줄 무시
 
     const row = {};
-    headers.forEach((h, idx) => {
-      row[h] = values[idx] || "";
-    });
+    headers.forEach((h, idx) => { row[h] = values[idx] || ""; });
     rows.push(row);
   }
   return rows;
@@ -517,18 +544,24 @@ function renderDashboard(rawData) {
 // Google Sheet URL → CSV URL 변환
 // ============================================================
 
-// 어떤 형태의 Google Sheet URL이든 CSV export URL로 변환
+// 어떤 형태의 Google Sheet URL이든 gviz CSV URL로 변환
+// gviz/tq 엔드포인트는 "링크 공유" 설정만으로 인증 없이 동작합니다
+// (export?format=csv 는 Google 로그인 쿠키 없이 400을 반환하므로 사용하지 않음)
+//
 // 지원 형식:
-//   .../d/SHEET_ID/edit?usp=sharing
-//   .../d/SHEET_ID/edit#gid=123
-//   .../d/e/PUB_ID/pub?gid=0&output=csv   ← 이미 완성된 형태
-//   .../d/SHEET_ID/export?format=csv&gid=0 ← 이미 완성된 형태
+//   .../d/SHEET_ID/edit?usp=sharing        ← 일반 공유 링크
+//   .../d/SHEET_ID/edit#gid=123            ← 특정 탭
+//   .../d/e/PUB_ID/pub?gid=0&output=csv   ← 웹에 게시 링크 (그대로 사용)
+//   .../d/SHEET_ID/gviz/tq?tqx=out:csv    ← 이미 gviz URL
 function toCSVUrl(rawUrl) {
   const url = rawUrl.trim();
   if (!url) return null;
 
-  // 이미 CSV export/pub URL이면 그대로 사용
-  if (url.includes("output=csv") || url.includes("format=csv")) return url;
+  // 이미 완성된 pub CSV URL
+  if (url.includes("output=csv")) return url;
+
+  // 이미 gviz URL
+  if (url.includes("gviz/tq")) return url;
 
   // Sheet ID 추출 (/d/ 다음 세그먼트, /e/ 형태 제외)
   const idMatch = url.match(/\/spreadsheets\/d\/(?!e\/)([a-zA-Z0-9_-]+)/);
@@ -539,7 +572,8 @@ function toCSVUrl(rawUrl) {
   const gidMatch = url.match(/[?&#]gid=(\d+)/);
   const gid = gidMatch ? gidMatch[1] : "0";
 
-  return `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&gid=${gid}`;
+  // gviz/tq 엔드포인트 사용 — 공개 시트에서 CORS 없이 동작
+  return `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&gid=${gid}`;
 }
 
 // ============================================================

@@ -1,0 +1,468 @@
+/* ============================================================
+   Travel Log Dashboard - 스타일시트
+   모바일 우선 반응형 디자인 (iPhone 기준)
+   ============================================================ */
+
+/* 구글 폰트 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+/* ---- 전역 리셋 & 기본값 ---- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg:        #f5f6fa;
+  --surface:   #ffffff;
+  --border:    #e8eaf0;
+  --text:      #1a1d2e;
+  --text-sub:  #6b7280;
+  --primary:   #4f7cff;
+  --success:   #22c55e;
+  --warning:   #f59e0b;
+  --danger:    #ef4444;
+  --radius:    14px;
+  --shadow:    0 2px 12px rgba(0,0,0,0.07);
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding-bottom: 40px;
+}
+
+/* ---- 레이아웃 컨테이너 ---- */
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* ---- 헤더 ---- */
+header {
+  background: var(--primary);
+  color: #fff;
+  padding: 20px 16px 16px;
+  text-align: center;
+}
+
+header h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+header p {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+/* ---- 에러 배너 ---- */
+#error-banner {
+  display: none;
+  background: #fff8e1;
+  border-left: 4px solid var(--warning);
+  color: #7c5700;
+  font-size: 0.82rem;
+  padding: 12px 14px;
+  margin: 12px 0 0;
+  border-radius: 8px;
+  line-height: 1.55;
+}
+
+/* ---- 로딩 ---- */
+#loading {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-sub);
+  font-size: 0.9rem;
+}
+
+.spinner {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 10px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- 섹션 카드 ---- */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-header h2 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.card-body {
+  padding: 14px 16px;
+}
+
+/* ---- 요약 카드 ---- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.summary-item {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.summary-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.summary-item .label {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
+.summary-item .value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.summary-item .value.big {
+  font-size: 1.55rem;
+  color: var(--primary);
+}
+
+.summary-item .sub {
+  font-size: 0.7rem;
+  color: var(--text-sub);
+}
+
+/* 예산 초과/절약 */
+.over-budget {
+  background: #fff1f0;
+  border: 1px solid #ffd6d3;
+}
+.over-budget .value {
+  color: var(--danger) !important;
+}
+
+.under-budget {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+.under-budget .value {
+  color: var(--success) !important;
+}
+
+/* ---- 바 차트 ---- */
+.bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.bar-row:last-child {
+  margin-bottom: 0;
+}
+
+.bar-label {
+  font-size: 0.8rem;
+  color: var(--text);
+  min-width: 56px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 일별 차트는 날짜 라벨 폭을 좁게 */
+#daily-chart .bar-label {
+  min-width: 44px;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+}
+
+.bar-track {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 4px;
+  height: 20px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 4px;
+  min-width: 4px;
+  transition: width 0.5s ease;
+}
+
+/* 예산 초과일은 빨간색 바 */
+.bar-fill.bar-over {
+  background: var(--danger);
+}
+
+.bar-value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 80px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* ---- 최근 내역 리스트 ---- */
+.list-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-left {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.list-emoji {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+
+.list-info {
+  min-width: 0;
+}
+
+.list-item-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.list-meta {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  margin-top: 2px;
+}
+
+.list-note {
+  font-size: 0.72rem;
+  color: var(--primary);
+  margin-top: 2px;
+}
+
+.list-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.list-amount {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.orig-amount {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-sub);
+  margin-top: 1px;
+}
+
+.list-days {
+  font-size: 0.68rem;
+  color: var(--primary);
+  margin-top: 1px;
+}
+
+/* ---- 빈 상태 ---- */
+.empty-msg {
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* ---- 환율 정보 ---- */
+.rate-info {
+  font-size: 0.73rem;
+  color: var(--text-sub);
+  text-align: right;
+  margin-top: 10px;
+}
+
+/* ---- 날짜 선택 칩 ---- */
+.date-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.date-chip {
+  padding: 5px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text-sub);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.date-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: #eef2ff;
+}
+
+.date-chip.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---- 날짜 상세 내역 패널 ---- */
+.day-detail-content {
+  min-height: 48px;
+}
+
+.day-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0 10px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.day-detail-date {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 44px;
+}
+
+.day-detail-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+
+.day-detail-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
+.badge-over {
+  background: #fff1f0;
+  color: var(--danger);
+  border: 1px solid #ffd6d3;
+}
+
+.badge-ok {
+  background: #f0fdf4;
+  color: var(--success);
+  border: 1px solid #bbf7d0;
+}
+
+.day-detail-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-item:last-child {
+  border-bottom: none;
+}
+
+/* ---- 일별 차트 바 - 클릭 가능 스타일 ---- */
+.clickable-bar {
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.12s;
+  padding: 2px 4px;
+  margin: 0 -4px;
+}
+
+.clickable-bar:hover {
+  background: #eef2ff;
+}
+
+.clickable-bar:hover .bar-label {
+  color: var(--primary);
+}
+
+/* ---- 반응형: 태블릿 이상 ---- */
+@media (min-width: 640px) {
+  header {
+    padding: 24px 16px;
+  }
+  header h1 {
+    font-size: 1.5rem;
+  }
+  .summary-item .value.big {
+    font-size: 1.8rem;
+  }
+  .bar-value {
+    min-width: 100px;
+  }
+}

@@ -474,11 +474,12 @@ function renderScenarioSection(ctx) {
 // 바 차트 렌더링 (CSS 기반)
 // onClickFn이 있으면 각 바를 클릭 가능하게 만듦
 // labelMetaFn(label) → 라벨 아래에 표시할 서브텍스트 (예: 도시 일수)
-function renderBarChart(containerId, dataMap, limit, onClickFn, labelMetaFn) {
+// sortFn이 있으면 해당 정렬 함수 사용, 없으면 금액 내림차순
+function renderBarChart(containerId, dataMap, limit, onClickFn, labelMetaFn, sortFn) {
   const container = document.getElementById(containerId);
   if (!container) return;
 
-  const sorted = Object.entries(dataMap).sort((a, b) => b[1] - a[1]);
+  const sorted = Object.entries(dataMap).sort(sortFn || ((a, b) => b[1] - a[1]));
   const items  = limit ? sorted.slice(0, limit) : sorted;
   if (items.length === 0) {
     container.innerHTML = "<p class='empty-msg'>데이터가 없습니다.</p>";
@@ -970,7 +971,7 @@ function renderCalendarHeatmap(dataMap, entries, expanded) {
         }
         // 상세 내역 렌더링 + 스크롤
         renderDayDetail(date, entries, expanded);
-        document.getElementById("section-day-detail").scrollIntoView({ behavior: "smooth" });
+        document.getElementById("day-detail-content").scrollIntoView({ behavior: "smooth" });
       });
     });
   };
@@ -1079,16 +1080,33 @@ function renderDashboard(rawData, settingsMap) {
   const dates = Object.keys(byDate).sort();
 
   renderSummary(expanded, allEntries, settingsMap);
-  // allEntries를 entries에 __all로 태깅해서 Home 칩 렌더링에 활용
-  entries.__all = allEntries;
-  renderDatePicker(dates, entries, expanded);
   renderCalendarHeatmap(byDate, entries, expanded);
+
+  // 도시별 날짜 범위 계산 (start: 최초 date, end: start+days-1 중 최대)
+  const cityDateRange = {};
+  entries.forEach(e => {
+    const start = e.date;
+    const end = formatDate(addDays(parseDate(e.date), (parseInt(e.days) || 1) - 1));
+    if (!cityDateRange[e.city]) {
+      cityDateRange[e.city] = { start, end };
+    } else {
+      if (start < cityDateRange[e.city].start) cityDateRange[e.city].start = start;
+      if (end > cityDateRange[e.city].end) cityDateRange[e.city].end = end;
+    }
+  });
+
   renderBarChart(
     "city-chart", byCity, null,
     city => renderCityDetail(city, entries, expanded),
     city => {
       const d = cityDays[city];
       return d ? `<span class="bar-days-tag">${d}일 · 한도 ${formatKRW(d * DAILY_BUDGET)}</span>` : null;
+    },
+    ([a], [b]) => {
+      const ra = cityDateRange[a] || { start: "", end: "" };
+      const rb = cityDateRange[b] || { start: "", end: "" };
+      if (ra.start !== rb.start) return ra.start.localeCompare(rb.start);
+      return ra.end.localeCompare(rb.end);
     }
   );
   renderBarChart("category-chart", byCategory, null, category => renderCategoryDetail(category, entries, expanded));
